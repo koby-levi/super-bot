@@ -1,0 +1,20 @@
+# Node modules folder - dependencies (do not commit)
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Environment variables file
+.env
+
+# Build output 
+dist/
+build/
+
+# MacOS files
+.DS_Store
+
+# Windows thumbnail cache
+Thumbs.db
