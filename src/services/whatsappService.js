@@ -9,11 +9,10 @@ async function startWhatsAppClient() {
     whatsappClient = new Client({ authStrategy: new LocalAuth({ clientId: "whatsapp-bot" }) });
     
 	
-client.on('qr', async qr => {
-  const qrImageUrl = await qrcode.toDataURL(qr);
-  console.log('סרוק את הקוד כאן (פתח את הקישור בדפדפן):');
-  console.log(qrImageUrl);
-});
+    whatsappClient.on('qr', (qr) => {
+        console.log('QR Code:');
+        qrcode.generate(qr, { small: true });
+    });
     
 	
     whatsappClient.on('ready', () => {
