@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>בוט ניהול</title>
+  <script src="dashboard.js" defer></script>
+</head>
+<body>
+  <h1>ניהול בוט</h1>
+
+  <p id="status">טוען סטטוס...</p>
+
+  <button onclick="linkWhatsapp()">🔗 קישור WhatsApp</button>
+  <button onclick="startBot()">▶️ הפעל בוט</button>
+  <button onclick="stopBot()">⏹ כבה בוט</button>
+
+  <script>
+    updateStatus(); // קריאה ראשונית
+  </script>
+</body>
+</html>

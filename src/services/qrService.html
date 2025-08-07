@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>קישור וואטסאפ</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    #status {
+      font-size: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    #qr {
+      max-width: 80%;
+      height: auto;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .success {
+      font-size: 2rem;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h2>קשר את וואטסאפ שלך</h2>
+  <div id="status">בודק חיבור...</div>
+  <img id="qr" class="hidden" alt="QR Code" />
+  <p id="instructions" class="hidden">סרוק את קוד ה-QR כדי להתחבר</p>
+  <script>
+    async function checkStatus() {
+      const res = await fetch('/api/whatsapp/status');
+      const data = await res.json();
+      return data.connected;
+    }
+
+    async function fetchQR() {
+      const res = await fetch('/api/whatsapp/qr');
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.qrImage;
+    }
+
+    async function updateUI() {
+      const connected = await checkStatus();
+      const statusDiv = document.getElementById("status");
+      const qrImg = document.getElementById("qr");
+      const instructions = document.getElementById("instructions");
+
+      if (connected) {
+        statusDiv.textContent = "✅ וואטסאפ מחובר!";
+        statusDiv.className = "success";
+        qrImg.classList.add("hidden");
+        instructions.classList.add("hidden");
+      } else {
+        statusDiv.textContent = "🔄 לא מחובר עדיין, סרוק את הקוד:";
+        statusDiv.classList.remove("success");
+        const qr = await fetchQR();
+        if (qr) {
+          qrImg.src = qr;
+          qrImg.classList.remove("hidden");
+          instructions.classList.remove("hidden");
+        }
+      }
+    }
+
+    // התחלה ראשונית + רענון כל 10 שניות
+    updateUI();
+    setInterval(updateUI, 10000);
+  </script>
+</body>
+</html>

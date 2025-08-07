@@ -2,16 +2,28 @@ const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const { addMessageToQueue } = require('../utils/messageQueue');
 
+let lastQRCode = null;
 let whatsappClient;
+
+
+function getLastQRCode() {
+    return lastQRCode;
+}
+
 
 async function startWhatsAppClient() {
 	return new Promise((resolve, reject) => {
     whatsappClient = new Client({ authStrategy: new LocalAuth({ clientId: "whatsapp-bot" }) });
     
 	
+    //whatsappClient.on('qr', (qr) => {
+    //    console.log('QR Code:');
+    //    qrcode.generate(qr, { small: true });
+    //});
+	
     whatsappClient.on('qr', (qr) => {
-        console.log('QR Code:');
-        qrcode.generate(qr, { small: true });
+        console.log("📷 New QR code received");
+        lastQRCode = qr;
     });
     
 	
@@ -80,7 +92,7 @@ const sendWhatsAppMessage = async (number, message, ogData = null) => {
         }
         return true; 
     } catch (error) {
-        console.error('Failed to send message:', error);
+        console.error('Failed to send messag44444e:', error);
         return false; 
     }
 };
@@ -90,4 +102,4 @@ function getWhatsAppClient() {
     return whatsappClient;
 }
 
-module.exports = { startWhatsAppClient, setWhatsAppMessageHandler, sendWhatsAppMessage, getWhatsAppClient  };
+module.exports = { startWhatsAppClient, setWhatsAppMessageHandler, sendWhatsAppMessage, getWhatsAppClient, getLastQRCode  };
