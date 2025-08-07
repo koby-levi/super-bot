@@ -132,3 +132,16 @@ async function startServices() {
 
 
 startServices();
+
+const express = require('express');
+const app = express();
+
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (_, res) => {
+  res.send('🟢 Super Bot is running!');
+});
+
+app.listen(PORT, () => {
+  console.log(`🌐 Express server is running on port ${PORT}`);
+});
