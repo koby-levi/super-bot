@@ -129,7 +129,9 @@ app.get('/api/whatsapp/qr', async (req, res) => {
 
 /////////////////
 
-
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
+});
 
 //app.get('/connect-whatsapp', async (req, res) => {
 //    const qr = getLastQRCode();
