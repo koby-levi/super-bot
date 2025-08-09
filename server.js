@@ -29,7 +29,7 @@ async function startServices() {
 
     setWhatsAppMessageHandler(async (message) => {
 		
-		console.log('state.isBotActive:: ', state.isBotActive);
+		//console.log('state.isBotActive:: ', state.isBotActive);
 		
         if (!state.isBotActive) {
             console.log("🚫 Bot is not active, ignoring message.");

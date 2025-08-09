@@ -2,14 +2,30 @@ const fs = require('fs');
 const path = require('path');
 const { sendWhatsAppMessage } = require('../services/whatsappService');
 const { getClient, setClient, clearExpiredClients } = require('./clientsManager');
-
+//
+const { addBlocked, isBlocked, clearExpiredBlocked } = require('./blockedManager');
+//
 const scenario = JSON.parse(
   fs.readFileSync(path.join(__dirname, '../../data/scenario.json'), 'utf-8')
 );
 
 const EXPIRATION_TIME = 5 * 60 * 1000; // 5 דקות
-
+const MAX_ERRORS = 3;
 async function handleMessage(platform, phone, text, isNewClient) {
+	
+	
+  // מסירים חסימות שפגו (24 שעות = 86400000 מ"ש)
+  //clearExpiredBlocked(24 * 60 * 60 * 1000);
+  
+  // ClearExpiredBlocked
+  // 5 Min , 60 seconds in Min, 1000ms in second
+  clearExpiredBlocked(5 * 60 * 1000);
+
+  if (isBlocked(phone)) {
+      console.log(`🚫 ${phone} חסום — מתעלמים מהודעה`);
+      return;
+  }
+
   await clearExpiredClients();
 
   const now = Date.now();
@@ -17,7 +33,8 @@ async function handleMessage(platform, phone, text, isNewClient) {
 
   // אם לקוח חדש או התגובה ישנה מדי - לאתחל
   if (!client || now - client.lastUpdated > EXPIRATION_TIME) {
-    client = { step: 'start', sentReply: false, lastUpdated: now };
+    //client = { step: 'start', sentReply: false, lastUpdated: now };
+	client = { step: 'start', sentReply: false, lastUpdated: now, errorCount: 0 };
     setClient(phone, client);
   }
 
@@ -27,8 +44,9 @@ async function handleMessage(platform, phone, text, isNewClient) {
 
   if (!currentNode) {
     await sendWhatsAppMessage(phone, 'שגיאה במערכת. מתחילים מחדש...');
-    client = { step: 'start', sentReply: false, lastUpdated: now };
-    setClient(phone, client);
+    //client = { step: 'start', sentReply: false, lastUpdated: now };
+    client = { step: 'start', sentReply: false, lastUpdated: now, errorCount: 0 };
+	setClient(phone, client);
     return;
   }
 
@@ -53,8 +71,21 @@ async function handleMessage(platform, phone, text, isNewClient) {
         client.step = nextStep;
         client.sentReply = true;
         client.lastUpdated = now;
+		client.errorCount = 0;
         setClient(phone, client);
       } else {
+		//
+		// העלאת מונה טעויות
+        client.errorCount = (client.errorCount || 0) + 1;
+        console.log(`⚠️ ${phone} טעה ${client.errorCount} פעמים`);
+
+        if (client.errorCount >= MAX_ERRORS) {
+          addBlocked(phone);
+          await sendWhatsAppMessage(phone, "קיבלתי את הבקשה שלך, אחזור אליך בהקדם.");
+          return;
+        }
+		
+		//		
         await sendWhatsAppMessage(phone, currentNode.fallback || currentNode.reply);
         client.lastUpdated = now;
         setClient(phone, client);
@@ -78,10 +109,12 @@ async function handleMessage(platform, phone, text, isNewClient) {
           client.step = nextStep;
           client.sentReply = nextNode.type === 'message' ? true : false;
           client.lastUpdated = now;
+		  client.errorCount = 0;
           setClient(phone, client);
         } else {
-          client = { step: 'start', sentReply: false, lastUpdated: now };
-          setClient(phone, client);
+          //client = { step: 'start', sentReply: false, lastUpdated: now };
+          client = { step: 'start', sentReply: false, lastUpdated: now, errorCount: 0 };
+		  setClient(phone, client);
         }
       }
       break;
@@ -130,6 +163,7 @@ async function handleMessage(platform, phone, text, isNewClient) {
 		client.step = nextStep;
         client.sentReply = true;
         client.lastUpdated = now;
+		client.errorCount = 0;
         setClient(phone, client);
       }
 	  //
