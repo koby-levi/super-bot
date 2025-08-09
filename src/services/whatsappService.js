@@ -1,6 +1,6 @@
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
-const { addMessageToQueue } = require('../utils/messageQueue');
+//const qrcode = require('qrcode-terminal');
+//const { addMessageToQueue } = require('../utils/messageQueue');
 
 let lastQRCode = null;
 let whatsappClient;
