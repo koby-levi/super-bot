@@ -139,7 +139,31 @@ app.get('/health', (req, res) => {
 
 
 ///////////////////////
+app.get('/log', (req, res) => {
+	
+	
+    const logFilePath = logger.logFilePath;
 
+    fs.readFile(logFilePath, 'utf8', (err, data) => {
+        if (err) {
+            return res.status(500).send('Failed to read log file');
+        }
+        // תחזיר את הלוג בתוך תגית <pre> לשמירת העיצוב
+        res.send(`<html><body><pre>${data}</pre></body></html>`);
+    });
+});
+////////////////////////////
+app.get('/get-log-file', (req, res) => {
+    const logFilePath = logger.logFilePath;
+
+    res.download(logFilePath, logFilePath , (err) => {
+        if (err) {
+            res.status(500).send('Failed to download log file');
+        }
+    });
+});
+
+////////////////////////////
 app.get('/link-whatsapp', (req, res) => {
   res.sendFile(path.join(__dirname, 'src/services', 'qrService.html'));
 });
