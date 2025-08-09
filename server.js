@@ -1,8 +1,9 @@
 const express = require('express');
 const app = express();
+const fs = require('fs');
 const path = require('path');
 
-const { getLastQRCode, startWhatsAppClient, setWhatsAppMessageHandler } = require('./src/services/whatsappService');
+const { getLastQRCode, startWhatsAppClient,stopWhatsAppClient, setWhatsAppMessageHandler } = require('./src/services/whatsappService');
 const QRCode = require('qrcode'); // חייב להתקין עם npm install qrcode
 
 const { sendWhatsAppMessage, getWhatsAppClient } = require('./src/services/whatsappService');
@@ -109,6 +110,9 @@ app.get('/start-bot', (req, res) => {
 
 // כיבוי הבוט
 app.get('/stop-bot', (req, res) => {
+	if (!state.isWhatsappConnected) {
+		return res.send("לא ניתן לכבות את הבוט לפני חיבור WhatsApp ❌");
+    }
     state.deactivateBot();
     return res.send("🛑 הבוט כובה");
 });
@@ -133,27 +137,56 @@ app.get('/health', (req, res) => {
     res.status(200).send('OK');
 });
 
-//app.get('/connect-whatsapp', async (req, res) => {
-//    const qr = getLastQRCode();
-//    if (!qr) {
-//        return res.send("⚠️ QR code not available yet. Please try again.");
-//    }
-//
-//    const qrImage = await QRCode.toDataURL(qr);
-//    res.send(`
-//        <h2>סרוק את קוד ה-QR כדי לקשר את וואטסאפ שלך:</h2>
-//        <img src="${qrImage}" alt="QR Code" style="width:100%;max-width:400px;" />
-//        <p>לאחר הסריקה – חזור <a href="/">לדף הראשי</a></p>
-//    `);
-//});
-
-
 
 ///////////////////////
 
-app.get('/connect-whatsapp', (req, res) => {
+app.get('/link-whatsapp', (req, res) => {
   res.sendFile(path.join(__dirname, 'src/services', 'qrService.html'));
 });
+
+
+app.delete('/unlink-whatsapp', async (req, res) => {
+	
+	if (!state.isWhatsappConnected) {
+		return res.send("לא ניתן להסיר קישור WhatsApp לפני שמקשרים אותו ❌");
+    }
+	
+	console.log(' unlink-whatsapp !');
+	
+	try {
+		await stopWhatsAppClient();
+		
+		const authPath = path.join(__dirname, '.wwebjs_auth');
+		const cachePath = path.join(__dirname, '.wwebjs_cache');
+	
+		let removedSomething = false;
+	
+		if (fs.existsSync(authPath)) {
+		fs.rmSync(authPath, { recursive: true, force: true });
+		removedSomething = true;
+		}
+	
+		if (fs.existsSync(cachePath)) {
+		fs.rmSync(cachePath, { recursive: true, force: true });
+		removedSomething = true;
+		}
+	
+		if (removedSomething) {
+		state.resetWhatsapp();
+		state.deactivateBot();
+		return res.send("✅ הקישור ל־WhatsApp נמחק בהצלחה");
+		} else {
+		return res.send("⚠️ לא נמצאו נתוני חיבור למחיקה");
+		}
+	} catch (err) {
+		console.error("❌ שגיאה במחיקת החיבור:", err);
+		res.status(500).send("❌ שגיאה במחיקת החיבור");
+	}
+});
+
+
+
+
 
 // ==================== START SERVER ====================
 app.listen(PORT, () => {

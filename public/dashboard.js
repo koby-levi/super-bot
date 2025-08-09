@@ -2,19 +2,32 @@ async function startBot() {
   const res = await fetch('/start-bot');
   const msg = await res.text();
   alert(msg);
-  updateStatus(); // נעדכן את הסטטוס אחרי ההפעלה
+  updateStatus();
 }
 
 async function stopBot() {
   const res = await fetch('/stop-bot');
   const msg = await res.text();
   alert(msg);
-  updateStatus(); // נעדכן את הסטטוס אחרי הכיבוי
+  updateStatus();
 }
 
 function linkWhatsapp() {
-  window.location.href = '/connect-whatsapp';
+  window.location.href = '/link-whatsapp';
 }
+
+
+async function removeWhatsapp() {
+  const confirmDelete = confirm("⚠️ מחיקת הקישור תגרום לבוט להפסיק לפעול.\nהאם אתה בטוח שברצונך להמשיך?");
+  if (!confirmDelete) return;
+
+  const res = await fetch('/unlink-whatsapp', { method: 'DELETE' });
+  const msg = await res.text();
+  alert(msg);
+  updateStatus();
+}
+
+
 
 // פונקציה לעדכון סטטוס במסך
 async function updateStatus() {
@@ -31,6 +44,5 @@ async function updateStatus() {
     console.error("Error updating status:", err);
   }
 }
-
 
 updateStatus();

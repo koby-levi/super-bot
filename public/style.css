@@ -83,3 +83,19 @@ button:hover {
   height: auto;
   max-width: 250px;
 }
+
+
+button.danger {
+  background-color: #e53935;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  margin-top: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  border-radius: 6px;
+}
+
+button.danger:hover {
+  background-color: #c62828;
+}

@@ -97,9 +97,23 @@ const sendWhatsAppMessage = async (number, message, ogData = null) => {
     }
 };
 
+async function stopWhatsAppClient() {
+    if (whatsappClient) {
+        try {
+            await whatsappClient.destroy();
+            console.log("🛑 WhatsApp client destroyed successfully.");
+        } catch (err) {
+            console.error("❌ Error destroying WhatsApp client:", err);
+        } finally {
+            whatsappClient = null; // ✅ חשוב כדי ש-getWhatsAppClient יחזיר null
+        }
+    }
+}
+
+
 
 function getWhatsAppClient() {
     return whatsappClient;
 }
 
-module.exports = { startWhatsAppClient, setWhatsAppMessageHandler, sendWhatsAppMessage, getWhatsAppClient, getLastQRCode  };
+module.exports = { startWhatsAppClient, stopWhatsAppClient, setWhatsAppMessageHandler, sendWhatsAppMessage, getWhatsAppClient, getLastQRCode };
