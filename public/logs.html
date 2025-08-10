@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8" />
+  <title>ניהול לוגים</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background: #b3b3b5;
+      color: #fff;
+      font-family: 'Segoe UI', monospace;
+      text-align: center;
+    }
+    #log-container {
+      width: 90%;
+      max-width: 900px;
+      height: 500px;
+      background: #1e1e1e;
+      color: #dcdcdc;
+      padding: 10px;
+      overflow-y: auto;
+      border-radius: 8px;
+      margin: 20px auto;
+      font-size: 0.9rem;
+      text-align: left;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      line-height: 1.5;
+      white-space: pre-wrap; /* שומר על ירידות שורה */
+    }
+    .log-line {
+      padding: 2px 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .log-line:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .log-buttons {
+      margin: 15px 0;
+    }
+    .log-buttons button {
+      margin: 5px;
+      width: auto;
+    }
+    .log-info {
+      color: #4caf50; /* ירוק */
+    }
+    .log-warning {
+      color: #ff9800; /* כתום */
+    }
+    .log-error {
+      color: #f44336; /* אדום */
+    }
+    /* עיצוב לפילטר */
+    .log-filter {
+      margin: 10px auto 20px;
+      max-width: 900px;
+      text-align: center;
+    }
+    .log-filter label {
+      margin: 0 10px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: bold;
+      font-size: 1rem;
+    }
+    .log-filter input[type="checkbox"] {
+      margin-left: 5px;
+      transform: scale(1.2);
+      vertical-align: middle;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>📜 ניהול לוגים</h1>
+
+  <!-- פילטר סוגי לוג -->
+  <div class="log-filter">
+    <label><input type="checkbox" value="ERROR" checked /> ERROR</label>
+    <label><input type="checkbox" value="WARNING" checked /> WARNING</label>
+    <label><input type="checkbox" value="INFO" checked /> INFO</label>
+  </div>
+
+  <div class="log-buttons">
+    <button onclick="loadLogs()">🔄 רענן לוגים</button>
+    <button onclick="window.open('/logs/download')">⬇ הורד לוגים</button>
+    <button class="danger" onclick="clearLogs()">🗑 מחק לוגים</button>
+    <button onclick="window.location.href='/'">⬅ חזור לדף הראשי</button>
+  </div>
+
+  <div id="log-container">טוען לוגים...</div>
+
+  <script>
+    async function loadLogs() {
+      const res = await fetch('/logs');
+      let text = await res.text();
+
+      if (!text.trim()) {
+        document.getElementById('log-container').innerHTML = "<i>אין לוגים להצגה.</i>";
+        return;
+      }
+
+      // קבלת סוגי הלוג שנבחרו בסינון
+      const checkedTypes = Array.from(
+        document.querySelectorAll('.log-filter input[type=checkbox]:checked')
+      ).map((cb) => cb.value);
+
+      const lines = text.split("\n").filter(line => line.trim() !== "");
+
+      // סינון השורות לפי סוגי הלוג שנבחרו
+      const filteredLines = lines.filter(line => {
+        for (const type of checkedTypes) {
+          if (type === "INFO") {
+            // INFO - נניח שהשורה לא מכילה ERROR או WARNING (או שנרצה לכלול הכל)
+            if (!line.includes("ERROR") && !line.includes("WARNING") && !line.includes("WARN")) {
+              return true;
+            }
+          } else {
+            if (line.includes(type)) return true;
+          }
+        }
+        return false;
+      });
+
+      // המרת השורות ל-HTML עם צבעים
+      const html = filteredLines
+        .map(line => {
+          let cls = "log-info";
+          if (line.includes("ERROR")) {
+            cls = "log-error";
+          } else if (line.includes("WARNING") || line.includes("WARN")) {
+            cls = "log-warning";
+          }
+          return `<div class="log-line ${cls}">${line}</div>`;
+        })
+        .join("");
+
+      document.getElementById('log-container').innerHTML = html;
+      document.getElementById('log-container').scrollTop = document.getElementById('log-container').scrollHeight;
+    }
+
+    async function clearLogs() {
+      if (!confirm("⚠ מחיקת הלוגים היא בלתי הפיכה. להמשיך?")) return;
+      await fetch('/logs/clear', { method: 'POST' });
+      loadLogs();
+    }
+
+    // מאזינים לשינוי פילטר - טוען מחדש אוטומטית בלחיצה על כל תיבה
+    document.querySelectorAll('.log-filter input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', loadLogs);
+    });
+
+    // רענון ראשוני
+    loadLogs();
+    // רענון אוטומטי כל 5 שניות
+    setInterval(loadLogs, 20000);
+  </script>
+</body>
+</html>

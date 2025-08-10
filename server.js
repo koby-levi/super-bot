@@ -32,12 +32,12 @@ async function startServices() {
 		//console.log('state.isBotActive:: ', state.isBotActive);
 		
         if (!state.isBotActive) {
-            console.log("🚫 Bot is not active, ignoring message.");
+            //console.log("🚫 Bot is not active, ignoring message.");
             return;
         }
 
         if (!message.from.includes("@s.whatsapp.net") && !message.from.includes("@c.us")) {
-            console.log(`🚫 Ignoring [WhatsApp] message from non-private source: ${message.from}`);
+            //console.log(`🚫 Ignoring [WhatsApp] message from non-private source: ${message.from}`);
             return;
         }
 
@@ -61,9 +61,10 @@ async function startServices() {
         const isMyContact = contact.isMyContact || false;
 
         if (isMyContact) {
-            console.log(`✅ ${savedName} is in your contacts.`);
+            //console.log(`✅ ${savedName} is in your contacts.`);
             if (savedName.includes("לקוח")) {
-                console.log(`🔍 The saved name contains the word "לקוח".`);
+                //console.log(`🔍 The saved name contains the word "לקוח".`);
+				console.log(`✅ ${savedName} Is talking with super-bot.`);
                 await handleMessage('whatsapp', message.from, message.body);
             } else {
                 console.log(`private conversation with: ${savedName}`);
@@ -102,18 +103,22 @@ app.get('/status', (req, res) => {
 // הפעלת הבוט
 app.get('/start-bot', (req, res) => {
     if (!state.isWhatsappConnected) {
+		console.log("ניסיון להפעיל את הבוט לפני חיבור WhatsApp - פעולה נדחתה");
         return res.send("❌ לא ניתן להפעיל את הבוט לפני חיבור WhatsApp");
     }
     state.activateBot();
-    return res.send("✅ הבוט הופעל בהצלחה");
+	console.log("✅ הבוט הופעל בהצלחה");
+    return res.send("✅ הופעל בהצלחה");
 });
 
 // כיבוי הבוט
 app.get('/stop-bot', (req, res) => {
 	if (!state.isWhatsappConnected) {
+		console.log("ניסיון לכבות את הבוט לפני חיבור WhatsApp - פעולה נדחתה");
 		return res.send("לא ניתן לכבות את הבוט לפני חיבור WhatsApp ❌");
     }
     state.deactivateBot();
+	console.log("🛑 הבוט כובה");
     return res.send("🛑 הבוט כובה");
 });
 
@@ -137,31 +142,54 @@ app.get('/health', (req, res) => {
     res.status(200).send('OK');
 });
 
-
+///LOG
 ///////////////////////
-app.get('/log', (req, res) => {
-	
-	
-    const logFilePath = logger.logFilePath;
-
-    fs.readFile(logFilePath, 'utf8', (err, data) => {
-        if (err) {
-            return res.status(500).send('Failed to read log file');
-        }
-        // תחזיר את הלוג בתוך תגית <pre> לשמירת העיצוב
-        res.send(`<html><body><pre>${data}</pre></body></html>`);
-    });
+app.get('/logs', (req, res) => {
+    if (!fs.existsSync(logger.logFilePath)) return res.send("");
+    const logs = fs.readFileSync(logger.logFilePath, 'utf8');
+    res.type('text/plain').send(logs);
 });
-////////////////////////////
-app.get('/get-log-file', (req, res) => {
-    const logFilePath = logger.logFilePath;
 
-    res.download(logFilePath, logFilePath , (err) => {
-        if (err) {
-            res.status(500).send('Failed to download log file');
-        }
-    });
+//app.get('/logs/download', (req, res) => {
+//    if (!fs.existsSync(logger.logFilePath)) return res.status(404).send("No logs found.");
+//    res.download(logger.logFilePath, 'super-bot.log.log');
+//});
+
+app.get('/logs/download', (req, res) => {
+    if (!fs.existsSync(logger.logFilePath)) return res.status(404).send("No logs found.");
+
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.download(logger.logFilePath, 'super-bot.log.log');
 });
+
+app.post('/logs/clear', (req, res) => {
+    fs.writeFileSync(logger.logFilePath, '', 'utf8');
+    res.send("✅ Log file cleared successfully.");
+});
+
+//app.get('/log', (req, res) => {
+//	
+//	
+//    const logFilePath = logger.logFilePath;
+//
+//    fs.readFile(logFilePath, 'utf8', (err, data) => {
+//        if (err) {
+//            return res.status(500).send('Failed to read log file');
+//        }
+//        // תחזיר את הלוג בתוך תגית <pre> לשמירת העיצוב
+//        res.send(`<html><body><pre>${data}</pre></body></html>`);
+//    });
+//});
+//////////////////////////////
+//app.get('/get-log-file', (req, res) => {
+//    const logFilePath = logger.logFilePath;
+//
+//    res.download(logFilePath, logFilePath , (err) => {
+//        if (err) {
+//            res.status(500).send('Failed to download log file');
+//        }
+//    });
+//});
 
 ////////////////////////////
 app.get('/link-whatsapp', (req, res) => {

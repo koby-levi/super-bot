@@ -10,7 +10,7 @@ const scenario = JSON.parse(
 );
 
 const EXPIRATION_TIME = 5 * 60 * 1000; // 5 דקות
-const MAX_ERRORS = 3;
+const MAX_ERRORS = 5;
 async function handleMessage(platform, phone, text, isNewClient) {
 	
 	
@@ -22,7 +22,7 @@ async function handleMessage(platform, phone, text, isNewClient) {
   clearExpiredBlocked(5 * 60 * 1000);
 
   if (isBlocked(phone)) {
-      console.log(`🚫 ${phone} חסום — מתעלמים מהודעה`);
+      //console.log(`🚫 ${phone} חסום — מתעלמים מהודעה`);
       return;
   }
 
@@ -77,7 +77,7 @@ async function handleMessage(platform, phone, text, isNewClient) {
 		//
 		// העלאת מונה טעויות
         client.errorCount = (client.errorCount || 0) + 1;
-        console.log(`⚠️ ${phone} טעה ${client.errorCount} פעמים`);
+        //console.log(`⚠️ ${phone} טעה ${client.errorCount} פעמים`);
 
         if (client.errorCount >= MAX_ERRORS) {
           addBlocked(phone);

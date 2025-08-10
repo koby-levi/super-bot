@@ -42,7 +42,7 @@ function clearExpiredClients() {
 
     for (const phone in clients) {
         if (now - clients[phone].lastUpdated > timeout) {
-            console.log(`⏳ מחקנו את הלקוח ${phone} כי עבר הזמן המותר`);
+            console.log(`⏳ עברו חמש דקות מאז התחיל הלקוח ${phone} את השיחה`);
             delete clients[phone];
         }
     }
