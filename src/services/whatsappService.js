@@ -32,6 +32,12 @@ async function startWhatsAppClient() {
 		resolve();
 	});
     
+	whatsappClient.on('auth_failure', msg => {
+		console.log('Authentication failure:', msg);
+		//stopWhatsAppClient();
+		// אם הסשן לא תקין (למשל הוא פג תוקף, או שהוסרו הקבצים) 
+	});
+
     whatsappClient.on('message', async (message) => {
 		if (whatsappMessageHandler) {
             whatsappMessageHandler(message);
@@ -100,12 +106,16 @@ const sendWhatsAppMessage = async (number, message, ogData = null) => {
 async function stopWhatsAppClient() {
     if (whatsappClient) {
         try {
+			 // אפשר להסיר מאזינים אם יש צורך:
+            whatsappClient.removeAllListeners();
             await whatsappClient.destroy();
             console.log("🛑 WhatsApp client destroyed successfully.");
         } catch (err) {
             console.error("❌ Error destroying WhatsApp client:", err);
+			throw err;
         } finally {
             whatsappClient = null; // ✅ חשוב כדי ש-getWhatsAppClient יחזיר null
+			lastQRCode = null;
         }
     }
 }

@@ -15,6 +15,7 @@ const Logger = require('./src/utils/logger');
 const logger = new Logger('super-bot.log.log');
 Logger.overrideConsole(logger);
 
+let isWhatsappClientCreated = false;
 
 const state = require('./src/utils/state');
 // ==================== START SERVICES ====================
@@ -167,33 +168,30 @@ app.post('/logs/clear', (req, res) => {
     res.send("✅ Log file cleared successfully.");
 });
 
-//app.get('/log', (req, res) => {
+
+//app.get('/link-whatsapp', (req, res) => {
 //	
-//	
-//    const logFilePath = logger.logFilePath;
-//
-//    fs.readFile(logFilePath, 'utf8', (err, data) => {
-//        if (err) {
-//            return res.status(500).send('Failed to read log file');
-//        }
-//        // תחזיר את הלוג בתוך תגית <pre> לשמירת העיצוב
-//        res.send(`<html><body><pre>${data}</pre></body></html>`);
-//    });
-//});
-//////////////////////////////
-//app.get('/get-log-file', (req, res) => {
-//    const logFilePath = logger.logFilePath;
-//
-//    res.download(logFilePath, logFilePath , (err) => {
-//        if (err) {
-//            res.status(500).send('Failed to download log file');
-//        }
-//    });
+//	if(!state.isWhatsappConnected){
+//		startServices();	
+//	}
+//    
+//	res.sendFile(path.join(__dirname, 'src/services', 'qrService.html'));
 //});
 
-////////////////////////////
-app.get('/link-whatsapp', (req, res) => {
-  res.sendFile(path.join(__dirname, 'src/services', 'qrService.html'));
+app.get('/link-whatsapp', async (req, res) => {
+    try {
+        if (!isWhatsappClientCreated) {
+            startServices();
+			isWhatsappClientCreated = true;
+        } else {
+            console.log('WhatsApp client already exists, no need to create again.');
+        }
+
+        res.sendFile(path.join(__dirname, 'src/services', 'qrService.html'));
+    } catch (err) {
+        console.error('Error initializing WhatsApp client:', err);
+        res.status(500).send('Error starting WhatsApp client');
+    }
 });
 
 
@@ -226,14 +224,20 @@ app.delete('/unlink-whatsapp', async (req, res) => {
 		if (removedSomething) {
 		state.resetWhatsapp();
 		state.deactivateBot();
+		isWhatsappClientCreated = false;
 		return res.send("✅ הקישור ל־WhatsApp נמחק בהצלחה");
 		} else {
+		isWhatsappClientCreated = false;
 		return res.send("⚠️ לא נמצאו נתוני חיבור למחיקה");
 		}
+		
+		
+		
 	} catch (err) {
 		console.error("❌ שגיאה במחיקת החיבור:", err);
 		res.status(500).send("❌ שגיאה במחיקת החיבור");
 	}
+	
 });
 
 
@@ -253,10 +257,13 @@ app.listen(PORT, () => {
 //    console.error("❌ Failed to start services:", err);
 //});
 
-startServices()
-    .then(() => {
-        state.isWhatsappConnected = true; // ✅ מעדכנים שהוואטסאפ מחובר
-    })
-    .catch((err) => {
-        console.error("❌ Failed to start services:", err);
-    });
+//startServices()
+//    .then(() => {
+//        state.isWhatsappConnected = true; // ✅ מעדכנים שהוואטסאפ מחובר
+//    })
+//    .catch((err) => {
+//        console.error("❌ Failed to start services:", err);
+//    });
+
+
+

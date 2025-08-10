@@ -1,6 +1,8 @@
 let state = {
     isBotActive: false,
-    isWhatsappConnected: false
+    isWhatsappConnected: false,
+	isWhatsappClientCreated: false
+	
 };
 
 function activateBot() {
@@ -14,6 +16,11 @@ function deactivateBot() {
 function connectWhatsapp() {
     state.isWhatsappConnected = true;
 }
+
+function connectWhatsappClient() {
+    state.isWhatsappClientCreated = true;
+}
+
 
 function resetWhatsapp() {
     state.isWhatsappConnected = false;
@@ -31,6 +38,7 @@ module.exports = {
     activateBot,
     deactivateBot,
     connectWhatsapp,
+	connectWhatsappClient,
     resetWhatsapp,
     getState,
     isConnected,
